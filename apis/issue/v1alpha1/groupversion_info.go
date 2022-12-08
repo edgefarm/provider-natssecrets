@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v1alpha1 contains the core resources of the NatsSecrets provider.
+// Package v1alpha1 contains the v1alpha1 group Sample resources of the NatsSecrets provider.
 // +kubebuilder:object:generate=true
-// +groupName=natssecrets.crossplane.io
+// +groupName=issue.natssecrets.crossplane.io
 // +versionName=v1alpha1
 package v1alpha1
 
@@ -27,7 +27,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "natssecrets.crossplane.io"
+	Group   = "issue.natssecrets.crossplane.io"
 	Version = "v1alpha1"
 )
 

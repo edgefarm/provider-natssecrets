@@ -1,0 +1,10 @@
+apiVersion: issue.natssecrets.crossplane.io/v1alpha1
+kind: Account
+metadata:
+  name: account
+spec:
+  forProvider:
+    operator: op1
+    account: acc1
+  providerConfigRef:
+    name: default

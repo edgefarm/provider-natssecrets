@@ -1,0 +1,19 @@
+---
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ControllerConfig
+metadata:
+  name: vault-secrets-nats-config
+  labels:
+    app: crossplane-provider-vault-secrets-nats
+spec:
+  image: crossplane/provider-vault-secrets-nats-controller:v0.1.0
+  args: ["-d"]
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: crossplane-provider-vault-secrets-nats
+spec:
+  package: crossplane/provider-vault-secrets-nats:v0.1.0
+  controllerConfigRef:
+    name:vault-secrets-nats-config

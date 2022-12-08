@@ -1,0 +1,31 @@
+version: v2beta1
+name: provider-vault-secrets-nats
+
+vars:
+  VAULT_ADDR: 
+    default: http://127.0.0.1:8200
+    question: "Enter address of vault server (with installed secret-nats plugin)"
+  VAULT_TOKEN: 
+    default: root
+    question: "Enter vault root token"
+
+pipelines:
+  init: |-
+    echo "${VAULT_TOKEN}" | vault login -
+    vault secrets enable -path=nats vault-plugin-secrets-nats
+
+  deploy: |-
+    create_deployments --all
+
+deployments:
+  crossplane:
+    kubectl:
+      kustomize: true
+      manifests:
+        - https://github.com/crossplane/crossplane//cluster?ref=master
+    namespace: crossplane-system
+  crds:
+    kubectl:
+      manifests:
+        - "./package/crds/"
+
