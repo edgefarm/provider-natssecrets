@@ -23,19 +23,18 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	"github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1/claims"
+	accountv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/account/v1alpha1"
 )
 
-// UserParameters are the configurable fields of a User.
-type UserParameters struct {
-	Operator string            `json:"operator" mapstructure:"operator"`
-	Account  string            `json:"account" mapstructure:"account"`
-	User     string            `json:"user" mapstructure:"user"`
-	Claims   claims.UserClaims `json:"user_claims,omitempty" mapstructure:"user_claims,omitempty"`
+// AccountParameters are the configurable fields of a Account.
+type AccountParameters struct {
+	Operator string                  `json:"operator"`
+	Account  string                  `json:"account"`
+	Claims   accountv1.AccountClaims `json:"account_claims,omitempty"`
 }
 
-// UserObservation are the observable fields of a User.
-type UserObservation struct {
+// AccountObservation are the observable fields of a Account.
+type AccountObservation struct {
 	Operator string `json:"operator,omitempty"`
 	Account  string `json:"account,omitempty"`
 	Issue    string `json:"issue,omitempty"`
@@ -43,52 +42,52 @@ type UserObservation struct {
 	JWT      string `json:"jwt,omitempty"`
 }
 
-// A UserSpec defines the desired state of a User.
-type UserSpec struct {
+// A AccountSpec defines the desired state of a Account.
+type AccountSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       UserParameters `json:"forProvider"`
+	ForProvider       AccountParameters `json:"forProvider"`
 }
 
-// A UserStatus represents the observed state of a User.
-type UserStatus struct {
+// A AccountStatus represents the observed state of a Account.
+type AccountStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
-	AtProvider          UserObservation `json:"atProvider,omitempty"`
+	AtProvider          AccountObservation `json:"atProvider,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// A User is an example API type.
+// A Account is an example API type.
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
-type User struct {
+type Account struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   UserSpec   `json:"spec"`
-	Status UserStatus `json:"status,omitempty"`
+	Spec   AccountSpec   `json:"spec"`
+	Status AccountStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// UserList contains a list of User
-type UserList struct {
+// AccountList contains a list of Account
+type AccountList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []User `json:"items"`
+	Items           []Account `json:"items"`
 }
 
-// User type metadata.
+// Account type metadata.
 var (
-	UserKind             = reflect.TypeOf(User{}).Name()
-	UserGroupKind        = schema.GroupKind{Group: Group, Kind: UserKind}.String()
-	UserKindAPIVersion   = UserKind + "." + SchemeGroupVersion.String()
-	UserGroupVersionKind = SchemeGroupVersion.WithKind(UserKind)
+	AccountKind             = reflect.TypeOf(Account{}).Name()
+	AccountGroupKind        = schema.GroupKind{Group: Group, Kind: AccountKind}.String()
+	AccountKindAPIVersion   = AccountKind + "." + SchemeGroupVersion.String()
+	AccountGroupVersionKind = SchemeGroupVersion.WithKind(AccountKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&User{}, &UserList{})
+	SchemeBuilder.Register(&Account{}, &AccountList{})
 }

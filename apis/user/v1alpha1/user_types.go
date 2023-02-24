@@ -23,75 +23,72 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	"github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1/claims"
+	userv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/user/v1alpha1"
 )
 
-// OperatorParameters are the configurable fields of a Operator.
-type OperatorParameters struct {
-	Operator      string                `json:"operator" mapstructure:"operator"`
-	SystemAccount string                `json:"system_account,omitempty" mapstructure:"system_account,omitempty"`
-	SigningKeys   []string              `json:"signing_keys,omitempty" mapstructure:"signing_keys,omitempty"`
-	Claims        claims.OperatorClaims `json:"operator_claims,omitempty" mapstructure:"operator_claims,omitempty"`
+// UserParameters are the configurable fields of a User.
+type UserParameters struct {
+	Operator string            `json:"operator"`
+	Account  string            `json:"account"`
+	User     string            `json:"user"`
+	Claims   userv1.UserClaims `json:"user_claims,omitempty"`
 }
 
-// OperatorObservation are the observable fields of a Operator.
-type OperatorObservation struct {
+// UserObservation are the observable fields of a User.
+type UserObservation struct {
 	Operator string `json:"operator,omitempty"`
+	Account  string `json:"account,omitempty"`
 	Issue    string `json:"issue,omitempty"`
 	NKey     string `json:"nkey,omitempty"`
 	JWT      string `json:"jwt,omitempty"`
 }
 
-// A OperatorSpec defines the desired state of a Operator.
-type OperatorSpec struct {
+// A UserSpec defines the desired state of a User.
+type UserSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       OperatorParameters `json:"forProvider"`
+	ForProvider       UserParameters `json:"forProvider"`
 }
 
-// A OperatorStatus represents the observed state of a Operator.
-type OperatorStatus struct {
+// A UserStatus represents the observed state of a User.
+type UserStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
-
-	AtProvider OperatorObservation `json:"atProvider,omitempty"`
-
-	// Status of this instance.
-	Status string `json:"status,omitempty"`
+	AtProvider          UserObservation `json:"atProvider,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// A Operator is an example API type.
+// A User is an example API type.
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
-type Operator struct {
+type User struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   OperatorSpec   `json:"spec"`
-	Status OperatorStatus `json:"status,omitempty"`
+	Spec   UserSpec   `json:"spec"`
+	Status UserStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// OperatorList contains a list of Operator
-type OperatorList struct {
+// UserList contains a list of User
+type UserList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Operator `json:"items"`
+	Items           []User `json:"items"`
 }
 
-// Operator type metadata.
+// User type metadata.
 var (
-	OperatorKind             = reflect.TypeOf(Operator{}).Name()
-	OperatorGroupKind        = schema.GroupKind{Group: Group, Kind: OperatorKind}.String()
-	OperatorKindAPIVersion   = OperatorKind + "." + SchemeGroupVersion.String()
-	OperatorGroupVersionKind = SchemeGroupVersion.WithKind(OperatorKind)
+	UserKind             = reflect.TypeOf(User{}).Name()
+	UserGroupKind        = schema.GroupKind{Group: Group, Kind: UserKind}.String()
+	UserKindAPIVersion   = UserKind + "." + SchemeGroupVersion.String()
+	UserGroupVersionKind = SchemeGroupVersion.WithKind(UserKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Operator{}, &OperatorList{})
+	SchemeBuilder.Register(&User{}, &UserList{})
 }

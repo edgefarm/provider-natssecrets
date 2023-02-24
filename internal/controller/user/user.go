@@ -34,7 +34,7 @@ import (
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 
-	"github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1"
+	"github.com/edgefarm/provider-natssecrets/apis/user/v1alpha1"
 	apisv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/issue"

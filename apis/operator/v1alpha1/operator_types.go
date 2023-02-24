@@ -23,71 +23,75 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	"github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1/claims"
+	operatorv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/operator/v1alpha1"
 )
 
-// AccountParameters are the configurable fields of a Account.
-type AccountParameters struct {
-	Operator string               `json:"operator" mapstructure:"operator"`
-	Account  string               `json:"account" mapstructure:"account"`
-	Claims   claims.AccountClaims `json:"account_claims,omitempty" mapstructure:"account_claims,omitempty"`
+// OperatorParameters are the configurable fields of a Operator.
+type OperatorParameters struct {
+	Operator      string                    `json:"operator"`
+	SystemAccount string                    `json:"system_account,omitempty"`
+	SigningKeys   []string                  `json:"signing_keys,omitempty"`
+	Claims        operatorv1.OperatorClaims `json:"operator_claims,omitempty"`
 }
 
-// AccountObservation are the observable fields of a Account.
-type AccountObservation struct {
+// OperatorObservation are the observable fields of a Operator.
+type OperatorObservation struct {
 	Operator string `json:"operator,omitempty"`
-	Account  string `json:"account,omitempty"`
 	Issue    string `json:"issue,omitempty"`
 	NKey     string `json:"nkey,omitempty"`
 	JWT      string `json:"jwt,omitempty"`
 }
 
-// A AccountSpec defines the desired state of a Account.
-type AccountSpec struct {
+// A OperatorSpec defines the desired state of a Operator.
+type OperatorSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       AccountParameters `json:"forProvider"`
+	ForProvider       OperatorParameters `json:"forProvider"`
 }
 
-// A AccountStatus represents the observed state of a Account.
-type AccountStatus struct {
+// A OperatorStatus represents the observed state of a Operator.
+type OperatorStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
-	AtProvider          AccountObservation `json:"atProvider,omitempty"`
+
+	AtProvider OperatorObservation `json:"atProvider,omitempty"`
+
+	// Status of this instance.
+	Status string `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// A Account is an example API type.
+// A Operator is an example API type.
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
-type Account struct {
+type Operator struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   AccountSpec   `json:"spec"`
-	Status AccountStatus `json:"status,omitempty"`
+	Spec   OperatorSpec   `json:"spec"`
+	Status OperatorStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// AccountList contains a list of Account
-type AccountList struct {
+// OperatorList contains a list of Operator
+type OperatorList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Account `json:"items"`
+	Items           []Operator `json:"items"`
 }
 
-// Account type metadata.
+// Operator type metadata.
 var (
-	AccountKind             = reflect.TypeOf(Account{}).Name()
-	AccountGroupKind        = schema.GroupKind{Group: Group, Kind: AccountKind}.String()
-	AccountKindAPIVersion   = AccountKind + "." + SchemeGroupVersion.String()
-	AccountGroupVersionKind = SchemeGroupVersion.WithKind(AccountKind)
+	OperatorKind             = reflect.TypeOf(Operator{}).Name()
+	OperatorGroupKind        = schema.GroupKind{Group: Group, Kind: OperatorKind}.String()
+	OperatorKindAPIVersion   = OperatorKind + "." + SchemeGroupVersion.String()
+	OperatorGroupVersionKind = SchemeGroupVersion.WithKind(OperatorKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Account{}, &AccountList{})
+	SchemeBuilder.Register(&Operator{}, &OperatorList{})
 }

@@ -20,7 +20,9 @@ package apis
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 
-	issuev1alpha1 "github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1"
+	accountv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/account/v1alpha1"
+	operatorv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/operator/v1alpha1"
+	userv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/user/v1alpha1"
 	natssecretsv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/v1alpha1"
 )
 
@@ -28,7 +30,9 @@ func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
 	AddToSchemes = append(AddToSchemes,
 		natssecretsv1alpha1.SchemeBuilder.AddToScheme,
-		issuev1alpha1.SchemeBuilder.AddToScheme,
+		operatorv1alpha1.SchemeBuilder.AddToScheme,
+		accountv1alpha1.SchemeBuilder.AddToScheme,
+		userv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

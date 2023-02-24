@@ -33,7 +33,7 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 
-	"github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1"
+	"github.com/edgefarm/provider-natssecrets/apis/operator/v1alpha1"
 	apisv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/issue"

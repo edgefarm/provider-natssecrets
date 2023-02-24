@@ -20,7 +20,7 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1"
+	"github.com/edgefarm/provider-natssecrets/apis/account/v1alpha1"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/issue"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/features"
 	"github.com/pkg/errors"

@@ -1,7 +1,7 @@
 package issue
 
 import (
-	v1alpha1 "github.com/edgefarm/provider-natssecrets/apis/issue/v1alpha1"
+	v1alpha1 "github.com/edgefarm/provider-natssecrets/apis/user/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
 )
 
