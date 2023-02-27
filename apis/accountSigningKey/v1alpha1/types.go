@@ -40,7 +40,7 @@ type AccountSigningKeyParameters struct {
 type AccountSigningKeyObservation struct {
 	Operator string `json:"operator,omitempty"`
 	Account  string `json:"account,omitempty"`
-	Nkey     string `json:"nkey,omitempty"`
+	NKey     string `json:"nkey,omitempty"`
 }
 
 // A AccountSigningKeySpec defines the desired state of a AccountSigningKey.
@@ -59,13 +59,14 @@ type AccountSigningKeyStatus struct {
 	Status string `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-
 // An AccountSigningKey is an API type for account signing keys.
+// +kubebuilder:object:root=true
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="OPERATOR",type="string",priority=1,JSONPath=".status.atProvider.operator"
+// +kubebuilder:printcolumn:name="ACCOUNT",type="string",priority=1,JSONPath=".status.atProvider.account"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
 type AccountSigningKey struct {
@@ -76,9 +77,8 @@ type AccountSigningKey struct {
 	Status AccountSigningKeyStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-
 // AccountSigningKeyList contains a list of AccountSigningKey
+// +kubebuilder:object:root=true
 type AccountSigningKeyList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

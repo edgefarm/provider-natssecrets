@@ -19,6 +19,10 @@ type Config struct {
 	Token string `json:"token"`
 	// Address is the Vault address to use for authentication.
 	Address string `json:"address"`
+	// Insecure enables or disables SSL verification
+	Insecure bool `json:"insecure,omitempty"`
+	// TLS is a flag that address is a TLS address.
+	TLS bool `json:"tls,omitempty"`
 	// Path is the mount root of the nats secrets engine.
 	Path string `json:"path"`
 }
@@ -46,7 +50,9 @@ func NewRootClient(creds []byte) (*Client, error) {
 		return nil, ErrVaultConfig
 	}
 	clientConfig := &api.Config{Address: config.Address}
-	clientConfig.ConfigureTLS(&api.TLSConfig{Insecure: true})
+	if config.TLS {
+		clientConfig.ConfigureTLS(&api.TLSConfig{Insecure: config.Insecure})
+	}
 
 	api, err := api.NewClient(clientConfig)
 	if err != nil {

@@ -1,0 +1,10 @@
+apiVersion: nkey.natssecrets.crossplane.io/v1alpha1
+kind: AccountSigningKey
+metadata:
+  name: mykey1
+spec:
+  forProvider:
+    operator: myoperator
+    account: myaccount
+  providerConfigRef:
+    name: vault-creds

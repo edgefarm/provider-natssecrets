@@ -28,12 +28,18 @@ type AccountSigningKeyConfig struct {
 type ImportAccountSigningKey struct {
 	// References a Kubernetes secret that contains the account signing key.
 	// +kubebuilder:validation:Required
-	SecretRef *LocalObjectReference `json:"secretRef"`
+	SecretRef *ObjectReference `json:"secretRef,omitempty"`
 }
 
-// LocalObjectReference references a Kubernetes object
-type LocalObjectReference struct {
+// ObjectReference references a Kubernetes object
+type ObjectReference struct {
 	// The name of the Kubernetes secret that contains the account signing key.
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
+	// The namespace of the Kubernetes secret that contains the account signing key.
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace"`
+	// The key of the Kubernetes secret that contains the account signing key's seed.
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
 }

@@ -1,0 +1,24 @@
+apiVersion: nkey.natssecrets.crossplane.io/v1alpha1
+kind: AccountSigningKey
+metadata:
+  name: importedkey1
+spec:
+  forProvider:
+    operator: myoperator
+    account: myaccount
+    config:
+      import:
+        secretRef:
+          name: mynkey
+          namespace: default
+          key: seed
+  providerConfigRef:
+    name: vault-creds
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mynkey
+  namespace: default
+data:
+  seed: U0FBSTZRUzVHSEFaUFNKSkEzVENWNjJVQUpMV0FDS0ZKUFlESUtIQlo2SDRRVk5GWFVKRUZKN0YzWQo=

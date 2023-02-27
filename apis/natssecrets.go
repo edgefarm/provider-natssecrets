@@ -21,7 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	accountv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/account/v1alpha1"
+	accountsigningkeyv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/accountSigningKey/v1alpha1"
 	operatorv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/operator/v1alpha1"
+	operatorsigningkeyv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/operatorSigningKey/v1alpha1"
 	userv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/user/v1alpha1"
 	natssecretsv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/v1alpha1"
 )
@@ -33,6 +35,8 @@ func init() {
 		operatorv1alpha1.SchemeBuilder.AddToScheme,
 		accountv1alpha1.SchemeBuilder.AddToScheme,
 		userv1alpha1.SchemeBuilder.AddToScheme,
+		accountsigningkeyv1alpha1.SchemeBuilder.AddToScheme,
+		operatorsigningkeyv1alpha1.SchemeBuilder.AddToScheme,
 	)
 }
 

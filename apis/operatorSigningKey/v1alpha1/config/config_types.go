@@ -28,7 +28,7 @@ type OperatorSigningKeyConfig struct {
 type ImportOperatorSigningKey struct {
 	// References a Kubernetes secret that contains the operator signing key.
 	// +kubebuilder:validation:Required
-	SecretRef *LocalObjectReference `json:"secretRef"`
+	SecretRef *LocalObjectReference `json:"secretRef,omitempty"`
 }
 
 // LocalObjectReference references a Kubernetes object
@@ -36,4 +36,10 @@ type LocalObjectReference struct {
 	// The name of the Kubernetes secret that contains the operator signing key.
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
+	// The namespace of the Kubernetes secret that contains the operator signing key.
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace"`
+	// The key of the Kubernetes secret that contains the operator signing key's seed.
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
 }

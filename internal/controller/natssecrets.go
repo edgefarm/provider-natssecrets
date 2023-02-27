@@ -21,8 +21,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/edgefarm/provider-natssecrets/internal/controller/account"
+	"github.com/edgefarm/provider-natssecrets/internal/controller/accountSigningKey"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/config"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/operator"
+	"github.com/edgefarm/provider-natssecrets/internal/controller/operatorSigningKey"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/user"
 )
 
@@ -34,6 +36,8 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		operator.Setup,
 		account.Setup,
 		user.Setup,
+		operatorSigningKey.Setup,
+		accountSigningKey.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err

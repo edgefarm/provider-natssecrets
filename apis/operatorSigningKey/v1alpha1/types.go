@@ -37,7 +37,7 @@ type OperatorSigningKeyParameters struct {
 // OperatorSigningKeyObservation are the observable fields of a OperatorSigningKey.
 type OperatorSigningKeyObservation struct {
 	Operator string `json:"operator,omitempty"`
-	Nkey     string `json:"nkey,omitempty"`
+	NKey     string `json:"nkey,omitempty"`
 }
 
 // A OperatorSigningKeySpec defines the desired state of a OperatorSigningKey.
@@ -63,6 +63,7 @@ type OperatorSigningKeyStatus struct {
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="OPERATOR",type="string",priority=1,JSONPath=".status.atProvider.operator"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
 type OperatorSigningKey struct {
