@@ -131,14 +131,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{}, errors.New(errNotOperator)
 	}
 
-	operator := cr.Spec.ForProvider.Operator
-
-	// check if operator id has changed
-	// if yes, undo changes and return error
-	if cr.Status.AtProvider.Operator != "" && cr.Status.AtProvider.Operator != operator {
-		cr.Spec.ForProvider.Operator = cr.Status.AtProvider.Operator
-		return managed.ExternalObservation{}, errors.New(errNotSupported)
-	}
+	operator := cr.Name
 
 	// check if operator in vault exists
 	// if not, call create
@@ -201,9 +194,8 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	// set connection details
-	details["seed"] = []byte(nk.Seed)
-	details["public_key"] = []byte(nk.PublicKey)
-	details["private_key"] = []byte(nk.PrivateKey)
+	// Don't set seed and private key as they are sensitive and need to kept secret
+	details["pub"] = []byte(nk.PublicKey)
 	details["jwt"] = []byte(j.JWT)
 
 	// set status
@@ -232,7 +224,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	cr.SetConditions(xpv1.Creating())
 
 	// create operator in vault
-	operator := cr.Spec.ForProvider.Operator
+	operator := cr.Name
 	err := issue.WriteOperator(c.client, operator, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
@@ -251,7 +243,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotOperator)
 	}
 
-	operator := cr.Spec.ForProvider.Operator
+	operator := cr.Name
 
 	// update operator
 	err := issue.WriteOperator(c.client, operator, &cr.Spec.ForProvider)
@@ -275,6 +267,6 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr.SetConditions(xpv1.Deleting())
 
 	// delete operator
-	operator := cr.Spec.ForProvider.Operator
+	operator := cr.Name
 	return issue.DeleteOperator(c.client, operator)
 }

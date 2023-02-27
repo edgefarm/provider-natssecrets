@@ -1,11 +1,10 @@
 apiVersion: issue.natssecrets.crossplane.io/v1alpha1
 kind: Account
 metadata:
-  name: account
+  name: myaccount
 spec:
   forProvider:
-    operator: op1
-    account: acc1
+    operator: myoperator
     claims:
       account:
         limits:
@@ -21,4 +20,4 @@ spec:
     name: vault-creds
   writeConnectionSecretToRef:
     namespace: crossplane-system
-    name: account
+    name: myaccount

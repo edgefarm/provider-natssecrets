@@ -22,6 +22,8 @@ import (
 
 	"github.com/edgefarm/provider-natssecrets/apis/account/v1alpha1"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/issue"
+	"github.com/edgefarm/provider-natssecrets/internal/clients/jwt"
+	"github.com/edgefarm/provider-natssecrets/internal/clients/nkey"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/features"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -133,7 +135,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Spec.ForProvider.Account
+	account := cr.Name
 	data, err := issue.ReadAccount(c.client, operator, account)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
@@ -156,22 +158,57 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	// receive nkey informations from vault
+	details := managed.ConnectionDetails{}
+	nk, err := nkey.ReadAccount(c.client, operator, account)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if nk == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for account nkey to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
+	// receive jwt informations from vault
+	j, err := jwt.ReadAccount(c.client, operator, account)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if j == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for account JWT to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
+	// set connection details
+	details["pub"] = []byte(nk.PublicKey)
+	details["jwt"] = []byte(j.JWT)
+
+	cr.Status.AtProvider.Operator = operator
+	cr.Status.AtProvider.Account = account
+	cr.Status.AtProvider.Issue = issue.AccountPath(c.client.Mount, operator, account)
+	cr.Status.AtProvider.NKey = nkey.AccountPath(c.client.Mount, operator, account)
+	cr.Status.AtProvider.JWT = jwt.AccountPath(c.client.Mount, operator, account)
+
 	cr.SetConditions(xpv1.Available())
 
 	return managed.ExternalObservation{
-		// Return false when the external resource does not exist. This lets
-		// the managed resource reconciler know that it needs to call Create to
-		// (re)create the resource, or that it has successfully been deleted.
-		ResourceExists: true,
-
-		// Return false when the external resource exists, but it not up to date
-		// with the desired managed resource state. This lets the managed
-		// resource reconciler know that it needs to call Update.
-		ResourceUpToDate: true,
-
-		// Return any details that may be required to connect to the external
-		// resource. These will be stored as the connection secret.
-		ConnectionDetails: managed.ConnectionDetails{},
+		ResourceExists:    true,
+		ResourceUpToDate:  true,
+		ConnectionDetails: details,
 	}, nil
 }
 
@@ -184,7 +221,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	cr.SetConditions(xpv1.Creating())
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Spec.ForProvider.Account
+	account := cr.Name
 	err := issue.WriteAccount(c.client, operator, account, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
@@ -204,7 +241,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Spec.ForProvider.Account
+	account := cr.Name
 
 	// check if operator id has changed
 	if cr.Status.AtProvider.Operator != "" && cr.Status.AtProvider.Account != "" {
@@ -235,7 +272,7 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Spec.ForProvider.Account
+	account := cr.Name
 
 	return issue.DeleteAccount(c.client, operator, account)
 }

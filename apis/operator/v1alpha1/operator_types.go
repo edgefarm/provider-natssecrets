@@ -23,16 +23,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
+	operatorv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/operator/v1alpha1"
 )
 
-// // OperatorParameters are the configurable fields of a Operator.
-// type OperatorParameters struct {
-// 	Operator            string                    `json:"operator"`
-// 	CreateSystemAccount bool                      `json:"createSystemAccount"`
-// 	Claims              operatorv1.OperatorClaims `json:"claims"`
-// 	SyncAccountServer   bool                      `json:"syncAccountServer"`
-// }
+// OperatorParameters are the configurable fields of a Operator.
+type OperatorParameters struct {
+	CreateSystemAccount bool                      `json:"createSystemAccount"`
+	Claims              operatorv1.OperatorClaims `json:"claims"`
+	SyncAccountServer   bool                      `json:"syncAccountServer"`
+}
 
 // OperatorObservation are the observable fields of a Operator.
 type OperatorObservation struct {
@@ -45,7 +44,7 @@ type OperatorObservation struct {
 // A OperatorSpec defines the desired state of a Operator.
 type OperatorSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       natsbackend.IssueOperatorParameters `json:"forProvider"`
+	ForProvider       OperatorParameters `json:"forProvider"`
 }
 
 // A OperatorStatus represents the observed state of a Operator.

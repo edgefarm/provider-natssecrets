@@ -37,7 +37,10 @@ import (
 	"github.com/edgefarm/provider-natssecrets/apis/user/v1alpha1"
 	apisv1alpha1 "github.com/edgefarm/provider-natssecrets/apis/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
+	"github.com/edgefarm/provider-natssecrets/internal/clients/creds"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/issue"
+	"github.com/edgefarm/provider-natssecrets/internal/clients/jwt"
+	"github.com/edgefarm/provider-natssecrets/internal/clients/nkey"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/features"
 )
 
@@ -134,7 +137,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	user := cr.Spec.ForProvider.User
+	user := cr.Name
 	data, err := issue.ReadUser(c.client, operator, account, user)
 	if err != nil {
 		return managed.ExternalObservation{
@@ -156,21 +159,76 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	// receive nkey informations from vault
+	details := managed.ConnectionDetails{}
+	nk, err := nkey.ReadUser(c.client, operator, account, user)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if nk == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for user nkey to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
+	// receive jwt informations from vault
+	j, err := jwt.ReadUser(c.client, operator, account, user)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if j == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for user JWT to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
+	// receive creds informations from vault
+	userCreds, err := creds.Read(c.client, operator, account, user)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if j == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for user creds to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
+	// set connection details
+	details["creds"] = []byte(userCreds.Creds)
+	details["seed"] = []byte(nk.Seed)
+	details["jwt"] = []byte(j.JWT)
+
+	cr.Status.AtProvider.Operator = operator
+	cr.Status.AtProvider.Account = account
+	cr.Status.AtProvider.User = user
+	cr.Status.AtProvider.Issue = issue.UserPath(c.client.Mount, operator, account, user)
+	cr.Status.AtProvider.NKey = nkey.UserPath(c.client.Mount, operator, account, user)
+	cr.Status.AtProvider.JWT = jwt.UserPath(c.client.Mount, operator, account, user)
+	cr.Status.AtProvider.Creds = creds.Path(c.client.Mount, operator, account, user)
+
 	cr.SetConditions(xpv1.Available())
 	return managed.ExternalObservation{
-		// Return false when the external resource does not exist. This lets
-		// the managed resource reconciler know that it needs to call Create to
-		// (re)create the resource, or that it has successfully been deleted.
-		ResourceExists: true,
-
-		// Return false when the external resource exists, but it not up to date
-		// with the desired managed resource state. This lets the managed
-		// resource reconciler know that it needs to call Update.
-		ResourceUpToDate: true,
-
-		// Return any details that may be required to connect to the external
-		// resource. These will be stored as the connection secret.
-		ConnectionDetails: managed.ConnectionDetails{},
+		ResourceExists:    true,
+		ResourceUpToDate:  true,
+		ConnectionDetails: details,
 	}, nil
 }
 
@@ -182,7 +240,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	user := cr.Spec.ForProvider.User
+	user := cr.Name
 	err := issue.WriteUser(c.client, operator, account, user, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
@@ -203,7 +261,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	user := cr.Spec.ForProvider.User
+	user := cr.Name
 	err := issue.WriteUser(c.client, operator, account, user, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalUpdate{}, err
@@ -224,7 +282,7 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	user := cr.Spec.ForProvider.User
+	user := cr.Name
 
 	return issue.DeleteUser(c.client, operator, account, user)
 }

@@ -1,23 +1,41 @@
 package issue
 
 import (
-	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
-
+	v1alpha1 "github.com/edgefarm/provider-natssecrets/apis/operator/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
+	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
 )
 
 func OperatorPath(mount string, operator string) string {
 	return mount + "/issue/operator/" + operator
 }
 
-func ReadOperator(c *vault.Client, operator string) (*natsbackend.IssueOperatorParameters, error) {
+func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameters, error) {
 	path := OperatorPath(c.Mount, operator)
-	return vault.Read[natsbackend.IssueOperatorParameters](c, path)
+
+	resp, err := vault.Read[natsbackend.IssueOperatorParameters](c, path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1alpha1.OperatorParameters{
+		CreateSystemAccount: resp.CreateSystemAccount,
+		SyncAccountServer:   resp.SyncAccountServer,
+		Claims:              resp.Claims,
+	}, nil
 }
 
-func WriteOperator(c *vault.Client, operator string, params *natsbackend.IssueOperatorParameters) error {
+func WriteOperator(c *vault.Client, operator string, params *v1alpha1.OperatorParameters) error {
 	path := OperatorPath(c.Mount, operator)
-	return vault.Write(c, path, params)
+
+	request := &natsbackend.IssueOperatorParameters{
+		Operator:            operator,
+		CreateSystemAccount: params.CreateSystemAccount,
+		SyncAccountServer:   params.SyncAccountServer,
+		Claims:              params.Claims,
+	}
+
+	return vault.Write(c, path, request)
 }
 
 func DeleteOperator(c *vault.Client, operator string) error {
