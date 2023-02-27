@@ -23,15 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	accountv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/account/v1alpha1"
+	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
 )
-
-// AccountParameters are the configurable fields of a Account.
-type AccountParameters struct {
-	Operator string                  `json:"operator"`
-	Account  string                  `json:"account"`
-	Claims   accountv1.AccountClaims `json:"account_claims,omitempty"`
-}
 
 // AccountObservation are the observable fields of a Account.
 type AccountObservation struct {
@@ -45,7 +38,7 @@ type AccountObservation struct {
 // A AccountSpec defines the desired state of a Account.
 type AccountSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       AccountParameters `json:"forProvider"`
+	ForProvider       natsbackend.IssueAccountParameters `json:"forProvider"`
 }
 
 // A AccountStatus represents the observed state of a Account.

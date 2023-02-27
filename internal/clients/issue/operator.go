@@ -1,7 +1,8 @@
 package issue
 
 import (
-	v1alpha1 "github.com/edgefarm/provider-natssecrets/apis/operator/v1alpha1"
+	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
+
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
 )
 
@@ -9,12 +10,12 @@ func OperatorPath(mount string, operator string) string {
 	return mount + "/issue/operator/" + operator
 }
 
-func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameters, error) {
+func ReadOperator(c *vault.Client, operator string) (*natsbackend.IssueOperatorParameters, error) {
 	path := OperatorPath(c.Mount, operator)
-	return vault.Read[v1alpha1.OperatorParameters](c, path)
+	return vault.Read[natsbackend.IssueOperatorParameters](c, path)
 }
 
-func WriteOperator(c *vault.Client, operator string, params *v1alpha1.OperatorParameters) error {
+func WriteOperator(c *vault.Client, operator string, params *natsbackend.IssueOperatorParameters) error {
 	path := OperatorPath(c.Mount, operator)
 	return vault.Write(c, path, params)
 }

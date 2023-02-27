@@ -1,0 +1,19 @@
+apiVersion: issue.natssecrets.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: user
+spec:
+  forProvider:
+    operator: op1
+    account: acc1
+    user: user1
+    claims:
+      user:
+        data: 100
+        payload: 200
+        subs: 300
+  providerConfigRef:
+    name: vault-creds
+  writeConnectionSecretToRef:
+    namespace: crossplane-system
+    name: user

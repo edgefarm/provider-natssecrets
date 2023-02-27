@@ -5,11 +5,12 @@ import (
 
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/helper/jsonutil"
-	"github.com/mitchellh/mapstructure"
+
+	stm "github.com/edgefarm/vault-plugin-secrets-nats/pkg/stm"
 )
 
 var (
-	ErrSecretNotFound = errors.New("no secret not found at given path")
+	ErrSecretNotFound = errors.New("no secret at given path")
 	ErrVaultConfig    = errors.New("secret does not contain a valid vault configuration")
 )
 
@@ -44,8 +45,10 @@ func NewRootClient(creds []byte) (*Client, error) {
 	if config.Token == "" || config.Address == "" {
 		return nil, ErrVaultConfig
 	}
+	clientConfig := &api.Config{Address: config.Address}
+	clientConfig.ConfigureTLS(&api.TLSConfig{Insecure: true})
 
-	api, err := api.NewClient(&api.Config{Address: config.Address})
+	api, err := api.NewClient(clientConfig)
 	if err != nil {
 		return &Client{}, err
 	}
@@ -60,7 +63,7 @@ func NewRootClient(creds []byte) (*Client, error) {
 
 func Write[T any](c *Client, path string, params *T) error {
 	data := map[string]interface{}{}
-	err := mapstructure.Decode(params, &data)
+	err := stm.StructToMap(params, &data)
 	if err != nil {
 		return err
 	}
@@ -78,7 +81,7 @@ func Read[T any](c *Client, path string) (*T, error) {
 	}
 
 	var params T
-	err = mapstructure.Decode(secret.Data, &params)
+	err = stm.MapToStruct(secret.Data, &params)
 	if err != nil {
 		return nil, err
 	}

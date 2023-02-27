@@ -23,16 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	userv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/user/v1alpha1"
+	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
 )
-
-// UserParameters are the configurable fields of a User.
-type UserParameters struct {
-	Operator string            `json:"operator"`
-	Account  string            `json:"account"`
-	User     string            `json:"user"`
-	Claims   userv1.UserClaims `json:"user_claims,omitempty"`
-}
 
 // UserObservation are the observable fields of a User.
 type UserObservation struct {
@@ -46,7 +38,7 @@ type UserObservation struct {
 // A UserSpec defines the desired state of a User.
 type UserSpec struct {
 	xpv1.ResourceSpec `json:",inline"`
-	ForProvider       UserParameters `json:"forProvider"`
+	ForProvider       natsbackend.IssueUserParameters `json:"forProvider"`
 }
 
 // A UserStatus represents the observed state of a User.

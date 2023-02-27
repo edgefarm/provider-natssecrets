@@ -1,0 +1,19 @@
+apiVersion: issue.natssecrets.crossplane.io/v1alpha1
+kind: Operator
+metadata:
+  name: operator
+spec:
+  forProvider:
+    operator: op1
+    createSystemAccount: true
+    syncAccountServer: true
+    claims:
+      operator:
+        systemAccount: SYS
+        accountServerUrl: "nats://nats.nats:4222"
+        strictSigningKeyUsage: false
+  providerConfigRef:
+    name: vault-creds
+  writeConnectionSecretToRef:
+    namespace: crossplane-system
+    name: operator
