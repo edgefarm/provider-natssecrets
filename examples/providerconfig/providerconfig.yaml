@@ -7,5 +7,21 @@ spec:
     source: Secret
     secretRef:
       namespace: crossplane-system
-      name: example-creds
+      name: vault-creds
       key: credentials
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-creds
+  namespace: crossplane-system
+type: Opaque
+stringData:
+  credentials: |
+    {
+      "address": "http://127.0.0.1:8200",
+      "tls": true,
+      "insecure": false,
+      "token": "root",
+      "path": "nats-secrets"
+    }
