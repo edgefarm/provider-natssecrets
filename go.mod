@@ -1,6 +1,6 @@
 module github.com/edgefarm/provider-natssecrets
 
-go 1.19
+go 1.20
 
 require (
 	github.com/crossplane/crossplane-runtime v0.19.1

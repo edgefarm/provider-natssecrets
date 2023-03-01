@@ -53,7 +53,7 @@ CONTROLLER_IMAGE="${BUILD_REGISTRY}/${PROJECT_NAME}-controller-${SAFEHOSTARCH}"
 version_tag="$(cat ${projectdir}/_output/version)"
 # tag as latest version to load into kind cluster
 PACKAGE_CONTROLLER_IMAGE="${DOCKER_REGISTRY}/${PROJECT_NAME}-controller:${VERSION}"
-K8S_CLUSTER="${K8S_CLUSTER:-${BUILD_REGISTRY}-inttests}"
+K8S_CLUSTER="${K8S_CLUSTER:-${PROJECT_NAME}-inttests}"
 
 CROSSPLANE_NAMESPACE="crossplane-system"
 
@@ -138,7 +138,7 @@ echo "${PVC_YAML}" | "${KUBECTL}" create -f -
 
 # install crossplane from stable channel
 echo_step "installing crossplane from stable channel"
-"${HELM3}" repo add crossplane-stable https://charts.crossplane.io/stable/
+"${HELM3}" repo add crossplane-stable https://charts.crossplane.io/stable/ | true
 chart_version="$("${HELM3}" search repo crossplane-stable/crossplane | awk 'FNR == 2 {print $2}')"
 echo_info "using crossplane version ${chart_version}"
 echo
@@ -159,7 +159,18 @@ metadata:
   name: "${PACKAGE_NAME}"
 spec:
   package: "${PACKAGE_NAME}"
+  controllerConfigRef:
+    name: "${PACKAGE_NAME}"
   packagePullPolicy: Never
+---
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ControllerConfig
+metadata:
+  name: "${PACKAGE_NAME}"
+spec:
+  args:
+    - --poll
+    - 3s
 EOF
 )"
 
@@ -171,7 +182,7 @@ docker exec "${K8S_CLUSTER}-control-plane" ls -la /cache
 
 echo_step "waiting for provider to be installed"
 
-kubectl wait "provider.pkg.crossplane.io/${PACKAGE_NAME}" --for=condition=healthy --timeout=180s
+kubectl wait "provider.pkg.crossplane.io/${PACKAGE_NAME}" --for=condition=healthy --timeout=360s
 
 echo_step "uninstalling ${PROJECT_NAME}"
 

@@ -138,6 +138,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	user := cr.Name
 	data, status, err := issue.ReadUser(c.client, operator, account, user)
 	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
 		return managed.ExternalObservation{
 			ResourceExists: false,
 		}, nil

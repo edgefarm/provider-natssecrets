@@ -47,7 +47,6 @@ const (
 	errTrackPCUsage = "cannot track ProviderConfig usage"
 	errGetPC        = "cannot get ProviderConfig"
 	errGetCreds     = "cannot get credentials"
-	errNotSupported = "not supported to change operator id"
 
 	errNewClient = "cannot create new Service"
 )

@@ -51,7 +51,10 @@ func NewRootClient(creds []byte) (*Client, error) {
 	}
 	clientConfig := &api.Config{Address: config.Address}
 	if config.TLS {
-		clientConfig.ConfigureTLS(&api.TLSConfig{Insecure: config.Insecure})
+		err := clientConfig.ConfigureTLS(&api.TLSConfig{Insecure: config.Insecure})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	api, err := api.NewClient(clientConfig)
