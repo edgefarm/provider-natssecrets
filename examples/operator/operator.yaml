@@ -1,18 +1,18 @@
 apiVersion: issue.natssecrets.crossplane.io/v1alpha1
 kind: Operator
 metadata:
-  name: operator
+  name: myoperator
 spec:
   forProvider:
-    operator: op1
-    operator_claims:
-      nats:
-        account_server_url: "https://host.domain.org:8080/jwt/v1"
-        operator_service_urls: 
-          - "tls://host:8080"
-        strict_signing_key_usage: false
+    createSystemAccount: true
+    syncAccountServer: true
+    claims:
+      operator:
+        systemAccount: SYS
+        accountServerUrl: "nats://nats.nats:4222"
+        strictSigningKeyUsage: false
   providerConfigRef:
     name: default
   writeConnectionSecretToRef:
     namespace: crossplane-system
-    name: operator
+    name: myoperator

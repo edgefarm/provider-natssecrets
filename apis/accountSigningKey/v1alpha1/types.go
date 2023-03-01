@@ -41,6 +41,7 @@ type AccountSigningKeyObservation struct {
 	Operator string `json:"operator,omitempty"`
 	Account  string `json:"account,omitempty"`
 	NKey     string `json:"nkey,omitempty"`
+	NKeyPath string `json:"nkeyPath,omitempty"`
 }
 
 // A AccountSigningKeySpec defines the desired state of a AccountSigningKey.
@@ -61,12 +62,13 @@ type AccountSigningKeyStatus struct {
 
 // An AccountSigningKey is an API type for account signing keys.
 // +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
-// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:printcolumn:name="OPERATOR",type="string",priority=1,JSONPath=".status.atProvider.operator"
 // +kubebuilder:printcolumn:name="ACCOUNT",type="string",priority=1,JSONPath=".status.atProvider.account"
+// +kubebuilder:printcolumn:name="NKEY",type="string",priority=1,JSONPath=".status.atProvider.nkey"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
 type AccountSigningKey struct {

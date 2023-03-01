@@ -25,3 +25,10 @@ stringData:
       "token": "root",
       "path": "nats-secrets"
     }
+
+# The `credentials` field in the secret of the provider is a JSON object with the following fields.
+# - address: [string] the Vault server address, either http:// or https://
+# - tls: [bool] whether to use TLS
+# - insecure: [bool] whether to skip TLS verification
+# - token: [string] the Vault token
+# - path: [string] the mount path within Vault path of the NATS Secrets engine

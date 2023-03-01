@@ -7,6 +7,11 @@ spec:
     operator: myoperator
     claims:
       account:
+        defaultPermissions:
+          pub:
+            allow:
+              - foo
+              - bar
         limits:
           subs: -1
           conn: -1

@@ -10,31 +10,29 @@ func OperatorPath(mount string, operator string) string {
 	return mount + "/issue/operator/" + operator
 }
 
-func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameters, error) {
+func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameters, *natsbackend.IssueOperatorStatus, error) {
 	path := OperatorPath(c.Mount, operator)
 
-	resp, err := vault.Read[natsbackend.IssueOperatorParameters](c, path)
+	resp, err := vault.Read[natsbackend.IssueOperatorData](c, path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return &v1alpha1.OperatorParameters{
 		CreateSystemAccount: resp.CreateSystemAccount,
 		SyncAccountServer:   resp.SyncAccountServer,
 		Claims:              resp.Claims,
-	}, nil
+	}, &resp.Status, nil
 }
 
 func WriteOperator(c *vault.Client, operator string, params *v1alpha1.OperatorParameters) error {
 	path := OperatorPath(c.Mount, operator)
-
 	request := &natsbackend.IssueOperatorParameters{
 		Operator:            operator,
 		CreateSystemAccount: params.CreateSystemAccount,
 		SyncAccountServer:   params.SyncAccountServer,
 		Claims:              params.Claims,
 	}
-
 	return vault.Write(c, path, request)
 }
 

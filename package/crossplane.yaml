@@ -7,8 +7,9 @@ metadata:
     meta.crossplane.io/source: github.com/edgefarm/provider-natssecrets
     meta.crossplane.io/license: Apache-2.0
     meta.crossplane.io/description: |
-      A natssecrets that can be used to create Crossplane providers.
+      A Crossplane provider for managing EdgeFarm's Vault NATS secrets plugin.
+      https://github.com/edgefarm/vault-plugin-secrets-nats
 
 spec:
   controller:
-    image: DOCKER_REGISTRY/provider-natssecrets-controller:VERSION
+    image: ghcr.io/edgefarm/provider-natssecrets/provider-natssecrets-controller:VERSION

@@ -4,12 +4,13 @@ metadata:
   name: myoperator
 spec:
   forProvider:
-    createSystemAccount: true
     syncAccountServer: true
     claims:
       operator:
-        systemAccount: SYS
+        systemAccount: sys
         accountServerUrl: "nats://nats.nats:4222"
+        signingKeys:
+          - opsk1
         strictSigningKeyUsage: false
   providerConfigRef:
     name: vault-creds

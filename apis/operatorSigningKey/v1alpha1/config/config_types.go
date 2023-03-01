@@ -19,7 +19,7 @@ package operatorSigningKey
 // +kubebuilder:object:generate=true
 // Specifies how the operator signing key is created.
 type OperatorSigningKeyConfig struct {
-	// Import specifies an existing Kubernetes secret to import as the operator signing key.
+	// Specifies an existing Kubernetes secret to import as the operator signing key.
 	// +kubebuilder:validation:Optional
 	Import ImportOperatorSigningKey `json:"import,omitempty"`
 }

@@ -1,10 +1,23 @@
 apiVersion: issue.natssecrets.crossplane.io/v1alpha1
 kind: Account
 metadata:
-  name: account
+  name: myaccount
 spec:
   forProvider:
-    operator: op1
-    account: acc1
+    operator: myoperator
+    claims:
+      account:
+        limits:
+          subs: -1
+          conn: -1
+          leafNodeConn: -1
+          data: -1
+          payload: -1
+          wildcardExports: true
+          imports: -1
+          exports: -1
   providerConfigRef:
     name: default
+  writeConnectionSecretToRef:
+    namespace: crossplane-system
+    name: myaccount

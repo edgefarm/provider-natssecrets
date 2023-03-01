@@ -10,28 +10,30 @@ func UserPath(mount string, operator string, account string, user string) string
 	return mount + "/issue/operator/" + operator + "/account/" + account + "/user/" + user
 }
 
-func ReadUser(c *vault.Client, operator string, account string, user string) (*v1alpha1.UserParameters, error) {
+func ReadUser(c *vault.Client, operator string, account string, user string) (*v1alpha1.UserParameters, *natsbackend.IssueUserStatus, error) {
 	path := UserPath(c.Mount, operator, account, user)
 
-	resp, err := vault.Read[natsbackend.IssueUserParameters](c, path)
+	resp, err := vault.Read[natsbackend.IssueUserData](c, path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return &v1alpha1.UserParameters{
-		Operator: resp.Operator,
-		Account:  resp.Account,
-		Claims:   resp.Claims,
-	}, nil
+		Operator:      resp.Operator,
+		Account:       resp.Account,
+		Claims:        resp.Claims,
+		UseSigningKey: resp.UseSigningKey,
+	}, &resp.Status, nil
 }
 
 func WriteUser(c *vault.Client, operator string, account string, user string, params *v1alpha1.UserParameters) error {
 	path := UserPath(c.Mount, operator, account, user)
 	request := &natsbackend.IssueUserParameters{
-		Operator: operator,
-		Account:  account,
-		User:     user,
-		Claims:   params.Claims,
+		Operator:      operator,
+		Account:       account,
+		User:          user,
+		Claims:        params.Claims,
+		UseSigningKey: params.UseSigningKey,
 	}
 	return vault.Write(c, path, request)
 }

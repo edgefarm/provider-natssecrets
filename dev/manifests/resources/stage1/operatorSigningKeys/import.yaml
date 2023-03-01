@@ -1,14 +1,14 @@
 apiVersion: nkey.natssecrets.crossplane.io/v1alpha1
 kind: OperatorSigningKey
 metadata:
-  name: importedkey1
+  name: opsk1
 spec:
   forProvider:
     operator: myoperator
     config:
       import:
         secretRef:
-          name: myoperatornkey
+          name: opsk1
           namespace: default
           key: seed
   providerConfigRef:
@@ -17,7 +17,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: myoperatornkey
+  name: opsk1
   namespace: default
 data:
   seed: U09BT0dMWFpDUzVUU1ZTTVBMM01QUjYzM0JaQUI2VkNJS1FJM1RMVTRaNUxFRlZEM0syRVQ1TUtQVQo=

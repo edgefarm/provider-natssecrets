@@ -19,7 +19,7 @@ package accountSigningKey
 // +kubebuilder:object:generate=true
 // Specifies how the account signing key is created.
 type AccountSigningKeyConfig struct {
-	// Import specifies an existing Kubernetes secret to import as the account signing key.
+	// Specifies an existing Kubernetes secret to import as the account signing key.
 	// +kubebuilder:validation:Optional
 	Import ImportAccountSigningKey `json:"import,omitempty"`
 }

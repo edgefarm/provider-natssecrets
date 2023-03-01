@@ -10,27 +10,28 @@ func AccountPath(mount string, operator string, account string) string {
 	return mount + "/issue/operator/" + operator + "/account/" + account
 }
 
-func ReadAccount(c *vault.Client, operator string, account string) (*v1alpha1.AccountParameters, error) {
+func ReadAccount(c *vault.Client, operator string, account string) (*v1alpha1.AccountParameters, *natsbackend.IssueAccountStatus, error) {
 	path := AccountPath(c.Mount, operator, account)
 
-	resp, err := vault.Read[natsbackend.IssueAccountParameters](c, path)
+	resp, err := vault.Read[natsbackend.IssueAccountData](c, path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	response := &v1alpha1.AccountParameters{
-		Operator: resp.Operator,
-		Claims:   resp.Claims,
-	}
-	return response, nil
+	return &v1alpha1.AccountParameters{
+		Operator:      resp.Operator,
+		Claims:        resp.Claims,
+		UseSigningKey: resp.UseSigningKey,
+	}, &resp.Status, nil
 }
 
 func WriteAccount(c *vault.Client, operator string, account string, params *v1alpha1.AccountParameters) error {
 	path := AccountPath(c.Mount, operator, account)
 	request := &natsbackend.IssueAccountParameters{
-		Operator: operator,
-		Account:  account,
-		Claims:   params.Claims,
+		Operator:      operator,
+		Account:       account,
+		Claims:        params.Claims,
+		UseSigningKey: params.UseSigningKey,
 	}
 	return vault.Write(c, path, request)
 }

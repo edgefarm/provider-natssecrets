@@ -132,7 +132,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
 	key := cr.Name
-	data, err := nkey.ReadAccountSigningKey(c.client, operator, account, key)
+	data, status, err := nkey.ReadAccountSigningKey(c.client, operator, account, key)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
 		return managed.ExternalObservation{
@@ -185,8 +185,13 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 	cr.Status.AtProvider.Operator = operator
 	cr.Status.AtProvider.Account = account
-	cr.Status.AtProvider.NKey = nkey.AccountSigningKeyPath(c.client.Mount, operator, account, key)
-
+	cr.Status.AtProvider.NKeyPath = nkey.AccountSigningKeyPath(c.client.Mount, operator, account, key)
+	cr.Status.AtProvider.NKey = func() string {
+		if status {
+			return "true"
+		}
+		return "false"
+	}()
 	cr.SetConditions(xpv1.Available())
 
 	return managed.ExternalObservation{

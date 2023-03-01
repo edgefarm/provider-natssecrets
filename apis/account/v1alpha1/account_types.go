@@ -23,22 +23,29 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	accountv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/account/v1alpha1"
+	"github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/account/v1alpha1"
 )
 
 // AccountParameters are the configurable fields of a Account.
 type AccountParameters struct {
-	Operator string                  `json:"operator"`
-	Claims   accountv1.AccountClaims `json:"claims,omitempty"`
+	Operator string `json:"operator"`
+	// +kubebuilder:validation:Optional
+	UseSigningKey string `json:"useSigningKey,omitempty"`
+	// +kubebuilder:validation:Optional
+	Claims v1alpha1.AccountClaims `json:"claims,omitempty"`
 }
 
 // AccountObservation are the observable fields of a Account.
 type AccountObservation struct {
-	Operator string `json:"operator,omitempty"`
-	Account  string `json:"account,omitempty"`
-	Issue    string `json:"issue,omitempty"`
-	NKey     string `json:"nkey,omitempty"`
-	JWT      string `json:"jwt,omitempty"`
+	Operator   string `json:"operator,omitempty"`
+	Account    string `json:"account,omitempty"`
+	Issue      string `json:"issue,omitempty"`
+	NKey       string `json:"nkey,omitempty"`
+	JWT        string `json:"jwt,omitempty"`
+	NKeyPath   string `json:"nkeyPath,omitempty"`
+	JWTPath    string `json:"jwtPath,omitempty"`
+	Pushed     string `json:"pushed,omitempty"`
+	LastPushed string `json:"lastPushed,omitempty"`
 }
 
 // A AccountSpec defines the desired state of a Account.
@@ -56,11 +63,15 @@ type AccountStatus struct {
 // +kubebuilder:object:root=true
 
 // A Account is an example API type.
+// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
-// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
-// +kubebuilder:printcolumn:name="OPERATOR",type="string",priority=1,JSONPath=".status.atProvider.operator"
+// +kubebuilder:printcolumn:name="OPERATOR",type="string",JSONPath=".status.atProvider.operator"
+// +kubebuilder:printcolumn:name="NKEY",type="string",priority=1,JSONPath=".status.atProvider.nkey"
+// +kubebuilder:printcolumn:name="JWT",type="string",priority=1,JSONPath=".status.atProvider.jwt"
+// +kubebuilder:printcolumn:name="PUSHED",type="string",priority=1,JSONPath=".status.atProvider.pushed"
+// +kubebuilder:printcolumn:name="LAST PUSHED",type="string",priority=1,JSONPath=".status.atProvider.lastPushed"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
 type Account struct {

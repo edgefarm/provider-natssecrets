@@ -8,11 +8,11 @@ spec:
     account: myaccount
     claims:
       user:
-        data: 100
-        payload: 200
-        subs: 300
+        data: 1
+        payload: 2
+        subs: 3
   providerConfigRef:
-    name: vault-creds
+    name: default
   writeConnectionSecretToRef:
     namespace: crossplane-system
     name: myuser

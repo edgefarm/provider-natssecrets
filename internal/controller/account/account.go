@@ -18,7 +18,9 @@ package account
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/edgefarm/provider-natssecrets/apis/account/v1alpha1"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/issue"
@@ -134,7 +136,8 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Name
-	data, err := issue.ReadAccount(c.client, operator, account)
+	data, status, err := issue.ReadAccount(c.client, operator, account)
+	fmt.Println(status)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
 		return managed.ExternalObservation{
@@ -198,9 +201,32 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	cr.Status.AtProvider.Operator = operator
 	cr.Status.AtProvider.Account = account
 	cr.Status.AtProvider.Issue = issue.AccountPath(c.client.Mount, operator, account)
-	cr.Status.AtProvider.NKey = nkey.AccountPath(c.client.Mount, operator, account)
-	cr.Status.AtProvider.JWT = jwt.AccountPath(c.client.Mount, operator, account)
-
+	cr.Status.AtProvider.NKeyPath = nkey.AccountPath(c.client.Mount, operator, account)
+	cr.Status.AtProvider.JWTPath = jwt.AccountPath(c.client.Mount, operator, account)
+	cr.Status.AtProvider.JWT = func() string {
+		if status.Account.JWT {
+			return "true"
+		}
+		return "false"
+	}()
+	cr.Status.AtProvider.NKey = func() string {
+		if status.Account.Nkey {
+			return "true"
+		}
+		return "false"
+	}()
+	cr.Status.AtProvider.Pushed = func() string {
+		if status.AccountServer.Synced {
+			return "true"
+		}
+		return "false"
+	}()
+	cr.Status.AtProvider.LastPushed = func() string {
+		if status.AccountServer.LastSync > 0 {
+			return time.Unix(status.AccountServer.LastSync, 0).Format(time.RFC3339)
+		}
+		return "never"
+	}()
 	cr.SetConditions(xpv1.Available())
 
 	return managed.ExternalObservation{

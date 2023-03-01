@@ -12,9 +12,15 @@ func OperatorSigningKeyPath(mount string, operator string, key string) string {
 	return mount + "/nkey/operator/" + operator + "/signing/" + key
 }
 
-func ReadOperatorSigningKey(c *vault.Client, operator string, key string) (*natsbackend.NkeyParameters, error) {
+func ReadOperatorSigningKey(c *vault.Client, operator string, key string) (*natsbackend.NkeyParameters, bool, error) {
 	path := OperatorSigningKeyPath(c.Mount, operator, key)
-	return vault.Read[natsbackend.NkeyParameters](c, path)
+	data, err := vault.Read[natsbackend.NkeyData](c, path)
+	if err != nil {
+		return nil, false, err
+	}
+	return &natsbackend.NkeyParameters{
+		Seed: data.Seed,
+	}, data.Seed != "", nil
 }
 
 func WriteOperatorSigningKey(c *vault.Client, operator string, key string, params *v1alpha1.OperatorSigningKeyParameters) error {

@@ -26,11 +26,14 @@ import (
 	operatorv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/operator/v1alpha1"
 )
 
-// OperatorParameters are the configurable fields of a Operator.
+// OperatorParameters are the configurable fields of an Operator.
 type OperatorParameters struct {
-	CreateSystemAccount bool                      `json:"createSystemAccount"`
-	Claims              operatorv1.OperatorClaims `json:"claims"`
-	SyncAccountServer   bool                      `json:"syncAccountServer"`
+	// +kubebuilder:validation:Optional
+	CreateSystemAccount bool `json:"createSystemAccount,omitempty"`
+	// +kubebuilder:validation:Optional
+	SyncAccountServer bool `json:"syncAccountServer,omitempty"`
+	// +kubebuilder:validation:Optional
+	Claims operatorv1.OperatorClaims `json:"claims,omitempty"`
 }
 
 // OperatorObservation are the observable fields of a Operator.
@@ -39,6 +42,8 @@ type OperatorObservation struct {
 	Issue    string `json:"issue,omitempty"`
 	NKey     string `json:"nkey,omitempty"`
 	JWT      string `json:"jwt,omitempty"`
+	NKeyPath string `json:"nkeyPath,omitempty"`
+	JWTPath  string `json:"jwtPath,omitempty"`
 }
 
 // A OperatorSpec defines the desired state of a Operator.
@@ -60,10 +65,12 @@ type OperatorStatus struct {
 // +kubebuilder:object:root=true
 
 // A Operator is an example API type.
+// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
-// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="NKEY",type="string",priority=1,JSONPath=".status.atProvider.nkey"
+// +kubebuilder:printcolumn:name="JWT",type="string",priority=1,JSONPath=".status.atProvider.jwt"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
 type Operator struct {

@@ -135,7 +135,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	// check if operator in vault exists
 	// if not, call create
-	data, err := issue.ReadOperator(c.client, operator)
+	data, status, err := issue.ReadOperator(c.client, operator)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
 		return managed.ExternalObservation{
@@ -201,8 +201,20 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	// set status
 	cr.Status.AtProvider.Operator = operator
 	cr.Status.AtProvider.Issue = issue.OperatorPath(c.client.Mount, operator)
-	cr.Status.AtProvider.NKey = nkey.OperatorPath(c.client.Mount, operator)
-	cr.Status.AtProvider.JWT = jwt.OperatorPath(c.client.Mount, operator)
+	cr.Status.AtProvider.NKeyPath = nkey.OperatorPath(c.client.Mount, operator)
+	cr.Status.AtProvider.JWTPath = jwt.OperatorPath(c.client.Mount, operator)
+	cr.Status.AtProvider.JWT = func() string {
+		if status.Operator.JWT {
+			return "true"
+		}
+		return "false"
+	}()
+	cr.Status.AtProvider.NKey = func() string {
+		if status.Operator.Nkey {
+			return "true"
+		}
+		return "false"
+	}()
 
 	// mark as available
 	cr.SetConditions(xpv1.Available())

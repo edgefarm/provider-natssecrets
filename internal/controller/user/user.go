@@ -136,7 +136,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
 	user := cr.Name
-	data, err := issue.ReadUser(c.client, operator, account, user)
+	data, status, err := issue.ReadUser(c.client, operator, account, user)
 	if err != nil {
 		return managed.ExternalObservation{
 			ResourceExists: false,
@@ -218,8 +218,20 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	cr.Status.AtProvider.Account = account
 	cr.Status.AtProvider.User = user
 	cr.Status.AtProvider.Issue = issue.UserPath(c.client.Mount, operator, account, user)
-	cr.Status.AtProvider.NKey = nkey.UserPath(c.client.Mount, operator, account, user)
-	cr.Status.AtProvider.JWT = jwt.UserPath(c.client.Mount, operator, account, user)
+	cr.Status.AtProvider.NKeyPath = nkey.UserPath(c.client.Mount, operator, account, user)
+	cr.Status.AtProvider.JWTPath = jwt.UserPath(c.client.Mount, operator, account, user)
+	cr.Status.AtProvider.JWT = func() string {
+		if status.User.JWT {
+			return "true"
+		}
+		return "false"
+	}()
+	cr.Status.AtProvider.NKey = func() string {
+		if status.User.Nkey {
+			return "true"
+		}
+		return "false"
+	}()
 	cr.Status.AtProvider.Creds = creds.Path(c.client.Mount, operator, account, user)
 
 	cr.SetConditions(xpv1.Available())

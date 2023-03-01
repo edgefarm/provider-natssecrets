@@ -1,0 +1,11 @@
+apiVersion: natssecrets.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: vault-creds
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: vault-creds
+      key: credentials

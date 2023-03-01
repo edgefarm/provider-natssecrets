@@ -1,9 +1,0 @@
-apiVersion: nkey.natssecrets.crossplane.io/v1alpha1
-kind: OperatorSigningKey
-metadata:
-  name: mysigningkey
-spec:
-  forProvider:
-    operator: myoperator
-  providerConfigRef:
-    name: vault-creds

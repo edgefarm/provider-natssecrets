@@ -23,14 +23,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
-	userv1 "github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/user/v1alpha1"
+	"github.com/edgefarm/vault-plugin-secrets-nats/pkg/claims/user/v1alpha1"
 )
 
 // UserParameters are the configurable fields of a User.
 type UserParameters struct {
-	Operator string            `json:"operator"`
-	Account  string            `json:"account"`
-	Claims   userv1.UserClaims `json:"claims,omitempty"`
+	Operator string `json:"operator"`
+	Account  string `json:"account"`
+	// +kubebuilder:validation:Optional
+	UseSigningKey string `json:"useSigningKey,omitempty"`
+	// +kubebuilder:validation:Optional
+	Claims v1alpha1.UserClaims `json:"claims,omitempty"`
 }
 
 // UserObservation are the observable fields of a User.
@@ -42,6 +45,8 @@ type UserObservation struct {
 	NKey     string `json:"nkey,omitempty"`
 	JWT      string `json:"jwt,omitempty"`
 	Creds    string `json:"creds,omitempty"`
+	NKeyPath string `json:"nkeyPath,omitempty"`
+	JWTPath  string `json:"jwtPath,omitempty"`
 }
 
 // A UserSpec defines the desired state of a User.
@@ -59,12 +64,14 @@ type UserStatus struct {
 // +kubebuilder:object:root=true
 
 // A User is an example API type.
+// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
-// +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
-// +kubebuilder:printcolumn:name="OPERATOR",type="string",priority=1,JSONPath=".status.atProvider.operator"
-// +kubebuilder:printcolumn:name="ACCOUNT",type="string",priority=1,JSONPath=".status.atProvider.account"
+// +kubebuilder:printcolumn:name="OPERATOR",type="string",JSONPath=".status.atProvider.operator"
+// +kubebuilder:printcolumn:name="ACCOUNT",type="string",JSONPath=".status.atProvider.account"
+// +kubebuilder:printcolumn:name="NKEY",type="string",priority=1,JSONPath=".status.atProvider.nkey"
+// +kubebuilder:printcolumn:name="JWT",type="string",priority=1,JSONPath=".status.atProvider.jwt"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,natssecrets}
 type User struct {
