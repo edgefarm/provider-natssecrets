@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/crossplane/crossplane-runtime v0.19.1
 	github.com/crossplane/crossplane-tools v0.0.0-20220901191540-806c0b01097b
-	github.com/edgefarm/vault-plugin-secrets-nats v1.0.1
+	github.com/edgefarm/vault-plugin-secrets-nats v1.1.0
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/vault/api v1.9.0
 	github.com/hashicorp/vault/sdk v0.8.1
@@ -129,5 +129,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/edgefarm/vault-plugin-secrets-nats => /home/armin/edgefarm/vault-plugin-secrets-nats
