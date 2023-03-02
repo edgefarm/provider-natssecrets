@@ -204,7 +204,7 @@ pipelines:
     VAULT_TOKEN=$(kubectl get secrets bank-vaults -n vault -o jsonpath={.data.vault-root} | base64 --decode)
     TEMPLATE=$(sed "s/VAULT_TOKEN/$VAULT_TOKEN/g" dev/manifests/resources/providerconfig/providerconfigsecret.yaml.tmpl)
     echo "$TEMPLATE" | kubectl apply -f -
-    kubectl apply -f dev/manifests/resources/providerconfig
+    kubectl apply -f dev/manifests/resources/providerconfig/providerconfig.yaml
     kubectl apply -f dev/manifests/resources/stage1 --recursive
 
   deploy-nats: |-
@@ -220,6 +220,9 @@ pipelines:
     echo "$TEMPLATE" > dev/manifests/nats/configmap.yaml
     create_deployments nats
     wait_for_deployment nats nats
+    kubectl get operators -o wide
+    kubectl get accounts -o wide
+    kubectl get users -o wide
 
   create-custom-nats-account: |-
     #!/bin/bash
@@ -227,6 +230,16 @@ pipelines:
     kubectl apply -f dev/manifests/resources/stage2  --recursive
     mkdir -p ${creds_dir}
     kubectl get secrets -n crossplane-system myuser -o jsonpath='{.data.creds}' | base64 -d > ${creds_dir}/creds
+    kubectl get operators -o wide
+    kubectl get accounts -o wide
+    kubectl get users -o wide
+
+  purge-nats: |-
+    #!/bin/bash
+    set -e
+    kubectl delete -f dev/manifests/nats/configmap.yaml
+    kubectl delete -f dev/manifests/nats/deployment.yaml
+    kubectl delete -f dev/manifests/nats/service.yaml
 
 deployments:
   local-path-provisioner:

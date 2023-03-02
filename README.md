@@ -314,7 +314,8 @@ The only thing that is important is, that your KUBECONFIG points to a `dev` clus
 
 ## 🧪 Test environment
 
-To test the provider locally, you can use `devspace` to spin up a local `kind` cluster with the following components installed:
+To test the provider locally, you can use [devspace](https://www.devspace.sh/docs/getting-started/introduction) to spin up a local `kind` cluster with the following components installed:
+
 - Hashicorp Vault (with custom TLS certificate)
 - NATS Server
 - Crossplane
@@ -330,7 +331,7 @@ $ devspace run-pipeline deploy-crossplane
 $ devspace run-pipeline deploy-nats
 ```
 
-Once the environment is up and running you can use the `nats` cli to connect to the NATS server and publish messages.
+Once the environment is up and running you can use the `nats` cli to connect to the NATS server and publish messages with user credentials.
 
 ```console
 # Create the account and user and get the creds for the user
@@ -339,7 +340,7 @@ $ kubectl port-forward -n nats svc/nats 4222:4222 &
 $ PID=$!
 
 # Publish and subscribe using the creds previously fetched
-$ docker run -it -d --rm --name nats-subscribe --network host -v $(pwd)/.devspace/creds/creds:/creds natsio/nats-box:0.13.4 nats sub -s nats://localhost:4222 --creds /creds foo 
+$ docker run -it -d --name nats-subscribe --network host -v $(pwd)/.devspace/creds/creds:/creds natsio/nats-box:0.13.4 nats sub -s nats://localhost:4222 --creds /creds foo 
 $ docker run --rm -d -it --name nats-publish --network host -v $(pwd)/.devspace/creds/creds:/creds natsio/nats-box:0.13.4 nats pub -s nats://localhost:4222 --creds /creds foo --count 3 "Message {{Count}} @ {{Time}}"
 
 # Log output shows that authenticating with the creds file works for pub and sub
@@ -356,6 +357,7 @@ Message 3 @ 2:49PM
 
 # Cleanup
 $ docker kill nats-subscribe
+$ docker rm nats-subscribe
 $ pkill $PID
 
 ```
