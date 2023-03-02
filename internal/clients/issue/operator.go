@@ -19,17 +19,12 @@ func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameter
 	if err != nil {
 		return nil, nil, err
 	}
-
-	ret := &v1alpha1.OperatorParameters{}
-	status := &natsbackend.IssueOperatorStatus{}
 	if resp != nil {
-		ret = &v1alpha1.OperatorParameters{
+		return &v1alpha1.OperatorParameters{
 			CreateSystemAccount: resp.CreateSystemAccount,
 			SyncAccountServer:   resp.SyncAccountServer,
 			Claims:              resp.Claims,
-		}
-		status = &resp.Status
-		return ret, status, nil
+		}, &resp.Status, nil
 	}
 	return nil, nil, fmt.Errorf("operator %s not found", operator)
 }

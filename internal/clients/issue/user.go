@@ -19,18 +19,13 @@ func ReadUser(c *vault.Client, operator string, account string, user string) (*v
 	if err != nil {
 		return nil, nil, err
 	}
-	ret := &v1alpha1.UserParameters{}
-	status := &natsbackend.IssueUserStatus{}
 	if resp != nil {
-
-		ret = &v1alpha1.UserParameters{
+		return &v1alpha1.UserParameters{
 			Operator:      resp.Operator,
 			Account:       resp.Account,
 			Claims:        resp.Claims,
 			UseSigningKey: resp.UseSigningKey,
-		}
-		status = &resp.Status
-		return ret, status, nil
+		}, &resp.Status, nil
 	}
 	return nil, nil, fmt.Errorf("user %s in account %s in operator %s not found", user, account, operator)
 }

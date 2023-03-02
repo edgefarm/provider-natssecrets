@@ -19,16 +19,12 @@ func ReadAccount(c *vault.Client, operator string, account string) (*v1alpha1.Ac
 	if err != nil {
 		return nil, nil, err
 	}
-	ret := &v1alpha1.AccountParameters{}
-	status := &natsbackend.IssueAccountStatus{}
 	if resp != nil {
-		ret = &v1alpha1.AccountParameters{
+		return &v1alpha1.AccountParameters{
 			Operator:      resp.Operator,
 			Claims:        resp.Claims,
 			UseSigningKey: resp.UseSigningKey,
-		}
-		status = &resp.Status
-		return ret, status, nil
+		}, &resp.Status, nil
 	}
 	return nil, nil, fmt.Errorf("account %s in operator %s not found", account, operator)
 }
