@@ -26,8 +26,9 @@ func ReadAccountSigningKey(c *vault.Client, operator string, account string, key
 			Seed: data.Seed,
 		}
 		status = data.Seed != ""
+		return ret, status, nil
 	}
-	return ret, status, fmt.Errorf("account signing key %s not found", key)
+	return nil, false, fmt.Errorf("account signing key %s not found", key)
 }
 
 func WriteAccountSigningKey(c *vault.Client, operator string, account string, key string, params *v1alpha1.AccountSigningKeyParameters) error {

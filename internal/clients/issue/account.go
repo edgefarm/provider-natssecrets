@@ -28,8 +28,9 @@ func ReadAccount(c *vault.Client, operator string, account string) (*v1alpha1.Ac
 			UseSigningKey: resp.UseSigningKey,
 		}
 		status = &resp.Status
+		return ret, status, nil
 	}
-	return ret, status, fmt.Errorf("account %s in operator %s not found", account, operator)
+	return nil, nil, fmt.Errorf("account %s in operator %s not found", account, operator)
 }
 
 func WriteAccount(c *vault.Client, operator string, account string, params *v1alpha1.AccountParameters) error {

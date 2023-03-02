@@ -25,8 +25,9 @@ func ReadOperatorSigningKey(c *vault.Client, operator string, key string) (*nats
 			Seed: data.Seed,
 		}
 		status = data.Seed != ""
+		return ret, status, nil
 	}
-	return ret, status, fmt.Errorf("operator signing key %s not found", key)
+	return nil, false, fmt.Errorf("operator signing key %s not found", key)
 }
 
 func WriteOperatorSigningKey(c *vault.Client, operator string, key string, params *v1alpha1.OperatorSigningKeyParameters) error {

@@ -30,8 +30,9 @@ func ReadUser(c *vault.Client, operator string, account string, user string) (*v
 			UseSigningKey: resp.UseSigningKey,
 		}
 		status = &resp.Status
+		return ret, status, nil
 	}
-	return ret, status, fmt.Errorf("user %s in account %s in operator %s not found", user, account, operator)
+	return nil, nil, fmt.Errorf("user %s in account %s in operator %s not found", user, account, operator)
 }
 
 func WriteUser(c *vault.Client, operator string, account string, user string, params *v1alpha1.UserParameters) error {

@@ -29,8 +29,9 @@ func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameter
 			Claims:              resp.Claims,
 		}
 		status = &resp.Status
+		return ret, status, nil
 	}
-	return ret, status, fmt.Errorf("operator %s not found", operator)
+	return nil, nil, fmt.Errorf("operator %s not found", operator)
 }
 
 func WriteOperator(c *vault.Client, operator string, params *v1alpha1.OperatorParameters) error {
