@@ -18,7 +18,6 @@ package account
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"time"
 
@@ -137,7 +136,6 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Name
 	data, status, err := issue.ReadAccount(c.client, operator, account)
-	fmt.Println(status)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
 		return managed.ExternalObservation{

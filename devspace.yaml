@@ -202,7 +202,6 @@ pipelines:
     create_deployments provider-natssecrets
     kubectl wait --for=condition=installed --for=condition=healthy providers.pkg.crossplane.io provider-natssecrets
     VAULT_TOKEN=$(kubectl get secrets bank-vaults -n vault -o jsonpath={.data.vault-root} | base64 --decode)
-    VAULT_TOKEN=root
     TEMPLATE=$(sed "s/VAULT_TOKEN/$VAULT_TOKEN/g" dev/manifests/resources/providerconfig/providerconfigsecret.yaml.tmpl)
     echo "$TEMPLATE" | kubectl apply -f -
     kubectl apply -f dev/manifests/resources/providerconfig

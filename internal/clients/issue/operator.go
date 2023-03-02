@@ -1,6 +1,8 @@
 package issue
 
 import (
+	"fmt"
+
 	v1alpha1 "github.com/edgefarm/provider-natssecrets/apis/operator/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
 	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
@@ -18,11 +20,17 @@ func ReadOperator(c *vault.Client, operator string) (*v1alpha1.OperatorParameter
 		return nil, nil, err
 	}
 
-	return &v1alpha1.OperatorParameters{
-		CreateSystemAccount: resp.CreateSystemAccount,
-		SyncAccountServer:   resp.SyncAccountServer,
-		Claims:              resp.Claims,
-	}, &resp.Status, nil
+	ret := &v1alpha1.OperatorParameters{}
+	status := &natsbackend.IssueOperatorStatus{}
+	if resp != nil {
+		ret = &v1alpha1.OperatorParameters{
+			CreateSystemAccount: resp.CreateSystemAccount,
+			SyncAccountServer:   resp.SyncAccountServer,
+			Claims:              resp.Claims,
+		}
+		status = &resp.Status
+	}
+	return ret, status, fmt.Errorf("operator %s not found", operator)
 }
 
 func WriteOperator(c *vault.Client, operator string, params *v1alpha1.OperatorParameters) error {

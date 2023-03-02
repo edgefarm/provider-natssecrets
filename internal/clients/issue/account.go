@@ -1,6 +1,8 @@
 package issue
 
 import (
+	"fmt"
+
 	v1alpha1 "github.com/edgefarm/provider-natssecrets/apis/account/v1alpha1"
 	vault "github.com/edgefarm/provider-natssecrets/internal/clients"
 	natsbackend "github.com/edgefarm/vault-plugin-secrets-nats"
@@ -17,12 +19,17 @@ func ReadAccount(c *vault.Client, operator string, account string) (*v1alpha1.Ac
 	if err != nil {
 		return nil, nil, err
 	}
-
-	return &v1alpha1.AccountParameters{
-		Operator:      resp.Operator,
-		Claims:        resp.Claims,
-		UseSigningKey: resp.UseSigningKey,
-	}, &resp.Status, nil
+	ret := &v1alpha1.AccountParameters{}
+	status := &natsbackend.IssueAccountStatus{}
+	if resp != nil {
+		ret = &v1alpha1.AccountParameters{
+			Operator:      resp.Operator,
+			Claims:        resp.Claims,
+			UseSigningKey: resp.UseSigningKey,
+		}
+		status = &resp.Status
+	}
+	return ret, status, fmt.Errorf("account %s in operator %s not found", account, operator)
 }
 
 func WriteAccount(c *vault.Client, operator string, account string, params *v1alpha1.AccountParameters) error {
