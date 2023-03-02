@@ -19,14 +19,10 @@ func ReadAccountSigningKey(c *vault.Client, operator string, account string, key
 	if err != nil {
 		return nil, false, err
 	}
-	ret := &natsbackend.NkeyParameters{}
-	status := false
 	if data != nil {
-		ret = &natsbackend.NkeyParameters{
+		return &natsbackend.NkeyParameters{
 			Seed: data.Seed,
-		}
-		status = data.Seed != ""
-		return ret, status, nil
+		}, data.Seed != "", nil
 	}
 	return nil, false, fmt.Errorf("account signing key %s not found", key)
 }
