@@ -17,3 +17,6 @@ data:
     resolver_preload: {
         SYS_ACCOUNT_PUBLIC_KEY: SYS_ACCOUNT_JWT
     }
+    leafnodes {
+        port: 7422
+    }
