@@ -289,7 +289,8 @@ deployments:
     helm:
       chart:
         name: crossplane
-        repo: https://charts.crossplane.io/master/
+        repo: https://charts.crossplane.io/stable/
+        version: "1.11.1"
     namespace: crossplane-system
 
   provider-natssecrets:
