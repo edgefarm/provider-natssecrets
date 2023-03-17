@@ -3,7 +3,7 @@ kind: Provider
 metadata:
   name: provider-natssecrets
 spec:
-  package: ghcr.io/edgefarm/provider-natssecrets/provider-natssecrets:master
+  package: ghcr.io/edgefarm/provider-natssecrets/provider-natssecrets:v0.2.0
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
   revisionHistoryLimit: 1
