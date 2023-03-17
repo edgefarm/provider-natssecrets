@@ -290,7 +290,15 @@ deployments:
       chart:
         name: crossplane
         repo: https://charts.crossplane.io/stable/
-        version: "1.11.1"
+        version: "1.11.2"
+      values:
+        args:
+          - --enable-composition-functions
+          - --debug
+        xfn:
+          enabled: true
+          args:
+            - --debug
     namespace: crossplane-system
 
   provider-natssecrets:

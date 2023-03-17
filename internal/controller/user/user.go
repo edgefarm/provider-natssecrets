@@ -18,6 +18,7 @@ package user
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -85,6 +86,15 @@ type connector struct {
 	kube         client.Client
 	usage        resource.Tracker
 	newServiceFn func(creds []byte) (*vault.Client, error)
+}
+
+type ProviderConfigSecretSpec struct {
+	// JWT is the NATS users JWT token to use for authentication.
+	JWT string `json:"jwt"`
+	// SeedKey is the NATS users seed key to use for authentication.
+	SeedKey string `json:"seed_key"`
+	// Address is the NATS address to use for authentication.
+	Address string `json:"address"`
 }
 
 // Connect typically produces an ExternalClient by:
@@ -210,10 +220,40 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	operatorIssue, _, err := issue.ReadOperator(c.client, operator)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if operatorIssue == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for operator issue to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
 	// set connection details
 	details["creds"] = []byte(userCreds.Creds)
 	details["seed"] = []byte(nk.Seed)
 	details["jwt"] = []byte(j.JWT)
+
+	// Use the first operator service url as the address for now.
+	// TODO: Support multiple operator service urls.
+	if operatorIssue.Claims.OperatorServiceURLs != nil {
+		ret, err := json.Marshal(ProviderConfigSecretSpec{
+			Address: operatorIssue.Claims.OperatorServiceURLs[0],
+			JWT:     j.JWT,
+			SeedKey: nk.Seed,
+		})
+		if err != nil {
+			return managed.ExternalObservation{}, errors.Wrap(err, "failed to marshal provider config secret")
+		}
+		details["provider-config-secret"] = ret
+	}
 
 	cr.Status.AtProvider.Operator = operator
 	cr.Status.AtProvider.Account = account
