@@ -186,6 +186,22 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	accountNK, err := nkey.ReadAccount(c.client, operator, account)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+	if accountNK == nil {
+		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for account nkey to be created"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
 	// receive jwt informations from vault
 	j, err := jwt.ReadUser(c.client, operator, account, user)
 	if err != nil {
@@ -279,6 +295,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	details["operator-jwt"] = []byte(operatorJWT.JWT)
 	details["sys-account-jwt"] = []byte(sysAccountJWT.JWT)
 	details["sys-account-public-key"] = []byte(sysAccountNK.PublicKey)
+	details["account-public-key"] = []byte(accountNK.PublicKey)
 
 	// Use the first operator service url as the address for now.
 	// TODO: Support multiple operator service urls.
