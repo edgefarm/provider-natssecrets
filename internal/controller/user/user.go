@@ -236,10 +236,49 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	operatorJWT, err := jwt.ReadOperator(c.client, operator)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+
+	sysaccountName := operatorIssue.Claims.SystemAccount
+	if sysaccountName == "" {
+		cr.SetConditions(xpv1.Unavailable().WithMessage("System account not found"))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+
+	sysAccountJWT, err := jwt.ReadAccount(c.client, operator, sysaccountName)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+
+	sysAccountNK, err := nkey.ReadAccount(c.client, operator, sysaccountName)
+	if err != nil {
+		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, nil
+	}
+
 	// set connection details
 	details["creds"] = []byte(userCreds.Creds)
 	details["seed"] = []byte(nk.Seed)
 	details["jwt"] = []byte(j.JWT)
+	details["operator-jwt"] = []byte(operatorJWT.JWT)
+	details["sys-account-jwt"] = []byte(sysAccountJWT.JWT)
+	details["sys-account-public-key"] = []byte(sysAccountNK.PublicKey)
 
 	// Use the first operator service url as the address for now.
 	// TODO: Support multiple operator service urls.
