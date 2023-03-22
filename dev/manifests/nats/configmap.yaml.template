@@ -20,3 +20,9 @@ data:
     leafnodes {
         port: 7422
     }
+    jetstream {
+      domain: main
+      store_dir: /data/jetstream
+      max_mem: 1G
+      max_file: 1G
+    }
