@@ -9,6 +9,8 @@ spec:
       operator:
         systemAccount: sys
         accountServerUrl: "nats://nats.nats:4222"
+        operatorServiceUrls:
+          - nats://nats.nats:4222
         signingKeys:
           - opsk1
         strictSigningKeyUsage: false

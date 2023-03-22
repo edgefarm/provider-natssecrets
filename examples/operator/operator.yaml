@@ -10,6 +10,8 @@ spec:
       operator:
         systemAccount: SYS
         accountServerUrl: "nats://nats.nats:4222"
+        operatorServiceUrls:
+          - nats://nats.nats:4222
         strictSigningKeyUsage: false
   providerConfigRef:
     name: default
