@@ -19,6 +19,7 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -290,25 +291,46 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	// set connection details
 	details["creds"] = []byte(userCreds.Creds)
-	details["seed"] = []byte(nk.Seed)
-	details["jwt"] = []byte(j.JWT)
-	details["operator-jwt"] = []byte(operatorJWT.JWT)
-	details["sys-account-jwt"] = []byte(sysAccountJWT.JWT)
-	details["sys-account-public-key"] = []byte(sysAccountNK.PublicKey)
 	details["account-public-key"] = []byte(accountNK.PublicKey)
+	details["address"] = []byte(operatorIssue.Claims.OperatorServiceURLs[0])
 
-	// Use the first operator service url as the address for now.
-	// TODO: Support multiple operator service urls.
-	if operatorIssue.Claims.OperatorServiceURLs != nil {
-		ret, err := json.Marshal(ProviderConfigSecretSpec{
-			Address: operatorIssue.Claims.OperatorServiceURLs[0],
-			JWT:     j.JWT,
-			SeedKey: nk.Seed,
-		})
-		if err != nil {
-			return managed.ExternalObservation{}, errors.Wrap(err, "failed to marshal provider config secret")
+	if account != sysaccountName {
+		details["seed"] = []byte(nk.Seed)
+		details["jwt"] = []byte(j.JWT)
+		details["dapr"] = []byte(fmt.Sprintf(`apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: streams
+spec:
+  type: pubsub.jetstream
+  version: v1
+  metadata:
+  - name: natsURL
+    value: "nats://localhost:4222"
+  - name: jwt
+    value: "%s"
+  - name: seedKey
+    value: "%s"`, j.JWT, nk.Seed))
+
+		// Use the first operator service url as the address for now.
+		// TODO: Support multiple operator service urls.
+		if operatorIssue.Claims.OperatorServiceURLs != nil {
+			ret, err := json.Marshal(ProviderConfigSecretSpec{
+				Address: operatorIssue.Claims.OperatorServiceURLs[0],
+				JWT:     j.JWT,
+				SeedKey: nk.Seed,
+			})
+			if err != nil {
+				return managed.ExternalObservation{}, errors.Wrap(err, "failed to marshal provider config secret")
+			}
+			details["provider-config-secret"] = ret
 		}
-		details["provider-config-secret"] = ret
+	}
+
+	if account == sysaccountName {
+		details["operator-jwt"] = []byte(operatorJWT.JWT)
+		details["sys-account-jwt"] = []byte(sysAccountJWT.JWT)
+		details["sys-account-public-key"] = []byte(sysAccountNK.PublicKey)
 	}
 
 	cr.Status.AtProvider.Operator = operator
