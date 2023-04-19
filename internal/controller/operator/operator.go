@@ -18,6 +18,7 @@ package operator
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -124,13 +125,30 @@ type external struct {
 	client *vault.Client
 }
 
+const (
+	annotationExternalName = "crossplane.io/external-name"
+)
+
+func getExternalName(r *v1alpha1.Operator) (string, error) {
+	annotations := r.GetAnnotations()
+	if annotations != nil {
+		if val, ok := annotations[annotationExternalName]; ok {
+			return val, nil
+		}
+	}
+	return "", fmt.Errorf("External name annotation not found for %s", r.GetName())
+}
+
 func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
 	cr, ok := mg.(*v1alpha1.Operator)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errNotOperator)
 	}
 
-	operator := cr.Name
+	operator, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalObservation{}, err
+	}
 
 	// check if operator in vault exists
 	// if not, call create
@@ -235,8 +253,12 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	cr.SetConditions(xpv1.Creating())
 
 	// create operator in vault
-	operator := cr.Name
-	err := issue.WriteOperator(c.client, operator, &cr.Spec.ForProvider)
+	operator, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalCreation{}, err
+	}
+
+	err = issue.WriteOperator(c.client, operator, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
 	}
@@ -254,10 +276,13 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotOperator)
 	}
 
-	operator := cr.Name
+	operator, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalUpdate{}, err
+	}
 
 	// update operator
-	err := issue.WriteOperator(c.client, operator, &cr.Spec.ForProvider)
+	err = issue.WriteOperator(c.client, operator, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalUpdate{}, err
 	}
@@ -278,6 +303,9 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr.SetConditions(xpv1.Deleting())
 
 	// delete operator
-	operator := cr.Name
+	operator, err := getExternalName(cr)
+	if err != nil {
+		return err
+	}
 	return issue.DeleteOperator(c.client, operator)
 }

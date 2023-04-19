@@ -18,6 +18,7 @@ package accountSigningKey
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/edgefarm/provider-natssecrets/apis/accountSigningKey/v1alpha1"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/nkey"
@@ -123,6 +124,20 @@ type external struct {
 	client *vault.Client
 }
 
+const (
+	annotationExternalName = "crossplane.io/external-name"
+)
+
+func getExternalName(r *v1alpha1.AccountSigningKey) (string, error) {
+	annotations := r.GetAnnotations()
+	if annotations != nil {
+		if val, ok := annotations[annotationExternalName]; ok {
+			return val, nil
+		}
+	}
+	return "", fmt.Errorf("External name annotation not found for %s", r.GetName())
+}
+
 func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
 	cr, ok := mg.(*v1alpha1.AccountSigningKey)
 	if !ok {
@@ -131,7 +146,10 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	key := cr.Name
+	key, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalObservation{}, err
+	}
 	data, status, err := nkey.ReadAccountSigningKey(c.client, operator, account, key)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
@@ -211,8 +229,12 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	key := cr.Name
-	err := nkey.WriteAccountSigningKey(c.client, operator, account, key, &cr.Spec.ForProvider)
+	key, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalCreation{}, err
+	}
+
+	err = nkey.WriteAccountSigningKey(c.client, operator, account, key, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
 	}
@@ -232,8 +254,11 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	key := cr.Name
-	err := nkey.WriteAccountSigningKey(c.client, operator, account, key, &cr.Spec.ForProvider)
+	key, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalUpdate{}, err
+	}
+	err = nkey.WriteAccountSigningKey(c.client, operator, account, key, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalUpdate{}, err
 	}
@@ -252,6 +277,9 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	operator := cr.Spec.ForProvider.Operator
 	account := cr.Spec.ForProvider.Account
-	key := cr.Name
+	key, err := getExternalName(cr)
+	if err != nil {
+		return err
+	}
 	return nkey.DeleteAccountSigningKey(c.client, operator, account, key)
 }

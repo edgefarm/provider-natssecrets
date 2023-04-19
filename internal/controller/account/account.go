@@ -18,6 +18,7 @@ package account
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -127,6 +128,20 @@ type external struct {
 	client *vault.Client
 }
 
+const (
+	annotationExternalName = "crossplane.io/external-name"
+)
+
+func getExternalName(r *v1alpha1.Account) (string, error) {
+	annotations := r.GetAnnotations()
+	if annotations != nil {
+		if val, ok := annotations[annotationExternalName]; ok {
+			return val, nil
+		}
+	}
+	return "", fmt.Errorf("External name annotation not found for %s", r.GetName())
+}
+
 func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
 	cr, ok := mg.(*v1alpha1.Account)
 	if !ok {
@@ -134,7 +149,10 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Name
+	account, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalObservation{}, err
+	}
 	data, status, err := issue.ReadAccount(c.client, operator, account)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
@@ -243,8 +261,11 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	cr.SetConditions(xpv1.Creating())
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Name
-	err := issue.WriteAccount(c.client, operator, account, &cr.Spec.ForProvider)
+	account, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalCreation{}, err
+	}
+	err = issue.WriteAccount(c.client, operator, account, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
 	}
@@ -263,7 +284,10 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Name
+	account, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalUpdate{}, err
+	}
 
 	// check if operator id has changed
 	if cr.Status.AtProvider.Operator != "" && cr.Status.AtProvider.Account != "" {
@@ -276,7 +300,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		}
 	}
 
-	err := issue.WriteAccount(c.client, operator, account, &cr.Spec.ForProvider)
+	err = issue.WriteAccount(c.client, operator, account, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalUpdate{}, err
 	}
@@ -294,7 +318,10 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	account := cr.Name
+	account, err := getExternalName(cr)
+	if err != nil {
+		return err
+	}
 
 	return issue.DeleteAccount(c.client, operator, account)
 }
