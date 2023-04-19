@@ -12,7 +12,7 @@ spec:
         payload: 2
         subs: 3
   providerConfigRef:
-    name: default
+    name: provider-natssecrets
   writeConnectionSecretToRef:
     namespace: crossplane-system
     name: myuser

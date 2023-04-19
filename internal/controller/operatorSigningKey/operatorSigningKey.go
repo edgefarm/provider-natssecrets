@@ -18,6 +18,7 @@ package operatorSigningKey
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/edgefarm/provider-natssecrets/apis/operatorSigningKey/v1alpha1"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/nkey"
@@ -123,6 +124,20 @@ type external struct {
 	client *vault.Client
 }
 
+const (
+	annotationExternalName = "crossplane.io/external-name"
+)
+
+func getExternalName(r *v1alpha1.OperatorSigningKey) (string, error) {
+	annotations := r.GetAnnotations()
+	if annotations != nil {
+		if val, ok := annotations[annotationExternalName]; ok {
+			return val, nil
+		}
+	}
+	return "", fmt.Errorf("External name annotation not found for %s", r.GetName())
+}
+
 func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
 	cr, ok := mg.(*v1alpha1.OperatorSigningKey)
 	if !ok {
@@ -130,7 +145,10 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	key := cr.Name
+	key, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalObservation{}, err
+	}
 	data, status, err := nkey.ReadOperatorSigningKey(c.client, operator, key)
 	if err != nil {
 		cr.SetConditions(xpv1.Unavailable().WithMessage(err.Error()))
@@ -209,8 +227,11 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	cr.SetConditions(xpv1.Creating())
 
 	operator := cr.Spec.ForProvider.Operator
-	key := cr.Name
-	err := nkey.WriteOperatorSigningKey(c.client, operator, key, &cr.Spec.ForProvider)
+	key, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalCreation{}, err
+	}
+	err = nkey.WriteOperatorSigningKey(c.client, operator, key, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalCreation{}, err
 	}
@@ -229,9 +250,12 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	key := cr.Name
+	key, err := getExternalName(cr)
+	if err != nil {
+		return managed.ExternalUpdate{}, err
+	}
 
-	err := nkey.WriteOperatorSigningKey(c.client, operator, key, &cr.Spec.ForProvider)
+	err = nkey.WriteOperatorSigningKey(c.client, operator, key, &cr.Spec.ForProvider)
 	if err != nil {
 		return managed.ExternalUpdate{}, err
 	}
@@ -249,7 +273,10 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	operator := cr.Spec.ForProvider.Operator
-	key := cr.Name
+	key, err := getExternalName(cr)
+	if err != nil {
+		return err
+	}
 
 	return nkey.DeleteOperatorSigningKey(c.client, operator, key)
 }
