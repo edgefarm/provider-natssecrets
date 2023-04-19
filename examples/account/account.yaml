@@ -17,7 +17,7 @@ spec:
           imports: -1
           exports: -1
   providerConfigRef:
-    name: provider-natssecrets
+    name: default
   writeConnectionSecretToRef:
     namespace: crossplane-system
     name: myaccount
