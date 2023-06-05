@@ -166,7 +166,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errNotUser)
 	}
-
+	v1alpha1.FixEmptySlices(&cr.Spec.ForProvider.Claims)
 	user, err := getExternalName(cr)
 	if err != nil {
 		return managed.ExternalObservation{}, err
