@@ -30,6 +30,7 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
+	"github.com/crossplane/crossplane-runtime/pkg/logging"
 	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
@@ -44,6 +45,8 @@ import (
 	"github.com/edgefarm/provider-natssecrets/internal/clients/jwt"
 	"github.com/edgefarm/provider-natssecrets/internal/clients/nkey"
 	"github.com/edgefarm/provider-natssecrets/internal/controller/features"
+
+	deep "github.com/go-test/deep"
 )
 
 const (
@@ -69,7 +72,8 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		managed.WithExternalConnecter(&connector{
 			kube:         mgr.GetClient(),
 			usage:        resource.NewProviderConfigUsageTracker(mgr.GetClient(), &apisv1alpha1.ProviderConfigUsage{}),
-			newServiceFn: vault.NewRootClient}),
+			newServiceFn: vault.NewRootClient,
+			logger:       o.Logger}),
 		managed.WithLogger(o.Logger.WithValues("controller", name)),
 		managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name))),
 		managed.WithConnectionPublishers(cps...))
@@ -87,6 +91,7 @@ type connector struct {
 	kube         client.Client
 	usage        resource.Tracker
 	newServiceFn func(creds []byte) (*vault.Client, error)
+	logger       logging.Logger
 }
 
 type ProviderConfigSecretSpec struct {
@@ -129,13 +134,17 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.Wrap(err, errNewClient)
 	}
 
-	return &external{client: client}, nil
+	return &external{
+		client: client,
+		log:    c.logger,
+	}, nil
 }
 
 // An ExternalClient observes, then either creates, updates, or deletes an
 // external resource to ensure it reflects the managed resource's desired state.
 type external struct {
 	client *vault.Client
+	log    logging.Logger
 }
 
 const (
@@ -179,6 +188,11 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, nil
 	}
 
+	diff := deep.Equal(*data, cr.Spec.ForProvider)
+	if diff != nil {
+		c.log.Debug("Observe", "user", user)
+		c.log.Debug("Compare failed", "diff", diff)
+	}
 	if !reflect.DeepEqual(data, &cr.Spec.ForProvider) {
 		return managed.ExternalObservation{
 			ResourceExists:    true,
@@ -247,7 +261,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			ResourceUpToDate: true,
 		}, nil
 	}
-	if j == nil {
+	if userCreds == nil {
 		cr.SetConditions(xpv1.Creating().WithMessage("Waiting for user creds to be created"))
 		return managed.ExternalObservation{
 			ResourceExists:   true,
