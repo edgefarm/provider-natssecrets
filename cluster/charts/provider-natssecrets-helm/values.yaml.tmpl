@@ -6,7 +6,9 @@ provider:
   tag: %%VERSION%%
   packagePullPolicy: IfNotPresent
   replicas: 1
-  args: []
+  args: 
+    - "--poll=10s"
+    - "--debug"
 
 vault:
   credentials:
